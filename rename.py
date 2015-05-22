@@ -23,13 +23,13 @@ def NewFileName (recursive, workspace, installation):
         print "Found: " + items
         original = items[:-4]
         head, util = os.path.split(findFolder)
-        if items[6:10] = util:
-            newname = installation + "-" + util + "-000"
-            new= newname + str(i)
-            print "Renaming " + original + " to " + new
-            core.rename(items, original, findFolder + "\\" + new)
-            i = i +1
-        else:
+
+        newname = installation + "-" + util + "-000"
+        new= newname + str(i)
+        print "Renaming " + original + " to " + new
+        core.rename(items, original, workspace + "\\" + new)
+        i = i +1
+
             
 
 
