@@ -12,6 +12,7 @@ def sort(filelist):
     # must decide which part of the filename you want
     # Script will ask you for a project number in order to format the
     #   the name of the folder correctly
+    # If another project has a specific naming convention you would like to add just let me know!
 
     # determines the project naming convention
     project = input("Which project number are you working on?")
@@ -24,44 +25,44 @@ def sort(filelist):
     files = core.list_files(False, filelist, False, False)
     
     for filename in files:
-       head,tail = os.path.split(filename)
+       head,tail = os.path.split(filename) #identifies the name of the file
     
        if project == 5646:
-           tail_list = tail[0:4]
-           print "Beginning to move " + tail
+           tail_list = tail[0:4] #finds the utility type
+           print "Beginning to move " + tail #moves to corresponding folder
            move_dir = os.path.join(head, tail_list)
 
            if not os.path.exists(move_dir):
-               os.makedirs(move_dir)
+               os.makedirs(move_dir) # if the folder doesn't already exist in workspace, its now created
 
            print tail + " moved to folder"
            shutil.move(filename, os.path.join(move_dir, tail))
 
        elif project ==  5088:
            delim = "_"
-           tail_list = tail.split(delim)
+           tail_list = tail.split(delim) #finds the utility type
                               
-           print "Moving " + tail
+           print "Moving " + tail #moves to corresponding folder
            move_dir = os.path.join(head, tail_list[0])
 
            if not os.path.exists(move_dir):
-               os.makedirs(move_dir)
+               os.makedirs(move_dir)  # if the folder doesn't already exist in workspace, its now created
 
-           print tail + " moved to folder"
            shutil.move(filename, os.path.join(move_dir, "_".join(tail_list[1:])))
            print("Moved file '{0}' ".format(filename))
            
     print("Moved all files!")
     return
 
-sort(works)
+# ex: sort(works)
 
 def NewFileName (recursive, workspace, installation):
+    #finds files to name
     files = core.list_files(recursive, workspace)
     util = os.path.dirname(workspace)
     i = 100
 
-    newname = "{0}-{1}-{2}".format(installation, util,i.zfill(6))
+    newname = "{0}-{1}-{2}".format(installation, util, i.zfill(6))
     
     for items in files:
         print items
