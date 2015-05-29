@@ -1,6 +1,5 @@
 
 import arcpy
-from dnppy import textio
 import shutil
 import os
 
