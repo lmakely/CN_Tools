@@ -1,3 +1,7 @@
+#-----------------------------------------------
+# Authors: Jeffry Ely and Lauren Makely
+# Date:
+#-----------------------------------------------
 
 import arcpy
 import shutil
@@ -48,15 +52,19 @@ def att_table_to_tdo(shp_filepath):
         field_names.append(field.baseName)
         
     # add new fields if desired
-    if "Monkey" not in field_names:
-        arcpy.AddField_management(shp_filepath, "Monkey", field_type = "text")
+    if "MediaPath" not in field_names:
+        arcpy.AddField_management(shp_filepath, "MediaPath", field_type = "text")
 
     # build iterator by each row (this is where the cool stuff goes)
     rows = arcpy.UpdateCursor(shp_filepath)
 
+    i = 100
+    
     for row in rows:
+        i = i +1
         FeatureID = getattr(row, "FeatureID")
-        setattr(row, "Monkey" ,"baboon")
+        newname = "{0}-{1}-{2}".format(installation, util, "000"+str(i))
+        setattr(row, "Monkey", newname)
         rows.updateRow(row)
 
     return 
@@ -69,17 +77,4 @@ if __name__ == "__main__":
     
     att_table_to_tdo(shapefile)
 
-
-
-
-
-
-
-
-
-
-
-
-
-    
     

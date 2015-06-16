@@ -53,22 +53,23 @@ def sort(filelist):
            
     print("Moved all files!")
     return
-
-# ex: sort(works)
+works = r"C:\LMM\5646\test"
+sort(works)
 
 def NewFileName (recursive, workspace, installation):
     #finds files to name
     files = core.list_files(recursive, workspace)
-    util = os.path.dirname(workspace)
     i = 100
-
-    newname = "{0}-{1}-{2}".format(installation, util, i.zfill(6))
-    
+        
     for items in files:
+        head, util = os.path.split(os.path.dirname(items))
+        
         print items
         original = items[:-4]
+        newname = "{0}-{1}-{2}".format(installation, util, "000"+str(i))
         print "Renaming " + original + " to " + newname
         core.rename(items, original, workspace + "\\" + newname)
         i = i +1
 
-# ex: NewFileName(True, works, "13A80")
+
+NewFileName(True, works, "13C70")
