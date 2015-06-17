@@ -8,6 +8,7 @@ import os
 import shutil
 import arcpy
 from xls_class import xls_class as xc
+from pprint import pprint
 
 wrkbk1 = r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\Matching_XL.xlsx"
 wrkbk2 = r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\fields_on.xlsx"
@@ -62,13 +63,21 @@ def read_attributes(shp_filepath, in_list):
     onsheet.read(in_list)
 
     print "Searching for desired fields: "
-    wanted = onsheet.worksheets["CAD_SDS"][0,1:]
-    print " " + "| ".join(wanted)
+    wanted = onsheet.worksheets["CAD_SDS"][0,2:8]
+    print " " + ", ".join(wanted)
+
+    print "--------------------------------"
+
+    expression = "[" + "]+[".join(wanted) + "]"
+    print "Joining together " + expression
+    if "MatchField" not in field_names:
+        arcpy.AddField_management(shp_filepath, "MatchField", field_type = "text")
+
+    arcpy.CalculateField_management (shp_filepath, "MatchField", expression)
     
-    with arcpy.da.SearchCursor (shp_filepath, wanted) as cursor:
+    with arcpy.da.SearchCursor (shp_filepath, "MatchField") as cursor:
         for row in cursor:
-            print "{0}  | {1}    | {2}    | {3}    | {4}    | {5}    |".format(row[0],row[1],row[2],row[3],row[4],row[5])
-    
+            print row
     return
 
 backup_shp =r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\NDM_302_Schema_UTM33_EGM08_GaetaSE_working\NDM_302_Schema_UTM33_EGM08_GaetaSE_working.gdb\CAD_Temporary\CAD_Polygons_Gaeta_SE"
