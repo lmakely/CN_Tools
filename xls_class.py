@@ -57,7 +57,6 @@ class xls_class():
 
 
 
-
 class sheet():
 
     def __init__(self, name, filepath):
