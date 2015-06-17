@@ -62,16 +62,17 @@ def read_attributes(shp_filepath, in_list):
     onsheet.read(in_list)
 
     print "Searching for desired fields: "
-    print onsheet.worksheets["CAD_SDS"][0,:]
+    wanted = onsheet.worksheets["CAD_SDS"][0,1:]
+    print " " + "| ".join(wanted)
     
-##    with arcpy.da.SearchCursor (fields, onlist) as cursor:
-##        for row in cursor:
-##            print "{0}  |{1}    |{2}    |{3}    |{4}    |{5}    |".format(row[0],row[1],row[2],row[3],row[4],row[5])
+    with arcpy.da.SearchCursor (shp_filepath, wanted) as cursor:
+        for row in cursor:
+            print "{0}  | {1}    | {2}    | {3}    | {4}    | {5}    |".format(row[0],row[1],row[2],row[3],row[4],row[5])
     
     return
 
 backup_shp =r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\NDM_302_Schema_UTM33_EGM08_GaetaSE_working\NDM_302_Schema_UTM33_EGM08_GaetaSE_working.gdb\CAD_Temporary\CAD_Polygons_Gaeta_SE"
-read_attributes(backup_shp, wrkbk2)
+read_attributes(backup_shp, wrkbk1)
 
 ### Pseudo Code below:
 ##  if Level_Name == " "
