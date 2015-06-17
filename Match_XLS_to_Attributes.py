@@ -14,8 +14,10 @@ import read_att_table
 wrkbk1 = r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\Matching_XL.xlsx"
 wrkbk2 = r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\fields_on.xlsx"
 shp = r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\shps\CAD_Polygons_Gaeta_SE.shp"
+##mxd = arcpy.mapping.MapDocument("V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\5637_testspace.mxd")
 
-def read_attributes(shp_filepath, in_list):
+
+def Match_attributes(shp_filepath, in_list):
     """
     Returns a python table of input shapefiles attribute table
     """
@@ -24,6 +26,10 @@ def read_attributes(shp_filepath, in_list):
     field_names = []
     faillist = []
     fields      = arcpy.ListFields(shp_filepath)
+
+##    # sets up mxd parameters
+##    df = arcpy.mapping.ListDataFrames(mxd, "Layers") [0]
+##    Shapes = arcpy.mapping.ListLayers(mxd, "CAD_Polygons_Gaeta_SE", df)[0]
 
     # ID fields in shpaefile
     print("Shapefile has the following fields:")
@@ -51,17 +57,22 @@ def read_attributes(shp_filepath, in_list):
         arcpy.AddField_management(shp_filepath, "MatchField", field_type = "text")
     # creates query statement
     arcpy.CalculateField_management (shp_filepath, "MatchField", expression)
-    
+
+    # join Matching_XL
+   #arcpy.JoinField_management (shp_filepath, "MatchField", in_list, "MatchingField", ["Feature_Class"])
+
 ##    with arcpy.da.SearchCursor (shp_filepath, "MatchField") as cursor:
 ##        for row in cursor:
-##            print row
+##            whereClause = "MatchField = "
+##            arcpy.SelectLayerByAttribute_management(Shapes, "NEW_SELECTION", whereClause)
+
     return
 
 
 #read_att_table.backup_shapefile(shp)
 backup_shp =r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\NDM_302_Schema_UTM33_EGM08_GaetaSE_working\NDM_302_Schema_UTM33_EGM08_GaetaSE_working.gdb\CAD_Temporary\CAD_Polygons_Gaeta_SE"
 
-read_attributes(backup_shp, wrkbk1)
+Match_attributes(backup_shp, wrkbk1)
 
 ### Pseudo Code below:
 ##  if Level_Name == " "
