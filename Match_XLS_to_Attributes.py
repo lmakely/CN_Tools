@@ -75,9 +75,9 @@ def read_attributes(shp_filepath, in_list):
 
     arcpy.CalculateField_management (shp_filepath, "MatchField", expression)
     
-    with arcpy.da.SearchCursor (shp_filepath, "MatchField") as cursor:
-        for row in cursor:
-            print row
+##    with arcpy.da.SearchCursor (shp_filepath, "MatchField") as cursor:
+##        for row in cursor:
+##            print row
     return
 
 backup_shp =r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\NDM_302_Schema_UTM33_EGM08_GaetaSE_working\NDM_302_Schema_UTM33_EGM08_GaetaSE_working.gdb\CAD_Temporary\CAD_Polygons_Gaeta_SE"
