@@ -1,3 +1,4 @@
 *.pyc
 .idea/
 dnppy_stat_report.txt
+test

@@ -7,8 +7,10 @@
 import os
 import shutil
 import arcpy
+from xls_class import xls_class as xc
 
-wrkbk = r""
+wrkbk1 = r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\Matching_XL.xlsx"
+wrkbk2 = r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\fields_on.xlsx"
 shp = r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\shps\CAD_Polygons_Gaeta_SE.shp"
 
 def backup_shapefile(source_shp):
@@ -36,7 +38,7 @@ def backup_shapefile(source_shp):
     print("Backup created at {0}".format(backupdir))
     return
 
-def read_attributes(shp_filepath):
+def read_attributes(shp_filepath, in_list):
     """
     Returns a python table of input shapefiles attribute table
     """
@@ -46,32 +48,36 @@ def read_attributes(shp_filepath):
     
     # find the field names
     field_names = []
+    faillist = []
     fields      = arcpy.ListFields(shp_filepath)
-    
+
     print("Shapefile has the following fields:")
     for field in fields:
         print field.baseName
         field_names.append(field.baseName)
-
-    onlist = ["Layer", "Level", "Color", "LyrColor", "LineWt", "RefName"]
+        
     print "--------------------------------"
-    print "Searching for desired fields: "
-    print " " + ", ".join(onlist)
     
-    with arcpy.da.SearchCursor (fields, onlist) as cursor:
-        for row in cursor:
-            print "{0}  |{1}    |{2}    |{3}    |{4}    |{5}    |".format(row[0],row[1],row[2],row[3],row[4],row[5])
+    onsheet = xc()
+    onsheet.read(in_list)
+
+    print "Searching for desired fields: "
+    print onsheet.worksheets["CAD_SDS"][0,:]
+    
+##    with arcpy.da.SearchCursor (fields, onlist) as cursor:
+##        for row in cursor:
+##            print "{0}  |{1}    |{2}    |{3}    |{4}    |{5}    |".format(row[0],row[1],row[2],row[3],row[4],row[5])
     
     return
 
 backup_shp =r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\NDM_302_Schema_UTM33_EGM08_GaetaSE_working\NDM_302_Schema_UTM33_EGM08_GaetaSE_working.gdb\CAD_Temporary\CAD_Polygons_Gaeta_SE"
-
-read_attributes(backup_shp)
+read_attributes(backup_shp, wrkbk2)
 
 ### Pseudo Code below:
-##  faillist = []
-
 ##  if Level_Name == " "
 ##        faillist.append(Level_Name)
 ##  if len(CO) > 1 or len(CO)=0:
 ##        faillist.append(Level_Name)
+
+
+
