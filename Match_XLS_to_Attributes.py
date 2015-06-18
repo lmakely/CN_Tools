@@ -31,7 +31,7 @@ def Match_attributes(shp_filepath, in_list):
 ##    df = arcpy.mapping.ListDataFrames(mxd, "Layers") [0]
 ##    Shapes = arcpy.mapping.ListLayers(mxd, "CAD_Polygons_Gaeta_SE", df)[0]
 
-    # ID fields in shpaefile
+    # ID fields in shapefile
     print("Shapefile has the following fields:")
     for field in fields:
         print field.baseName
@@ -53,13 +53,36 @@ def Match_attributes(shp_filepath, in_list):
     expression = "[" + "]&[".join(wanted) + "]"
     print "Joining together " + expression
     # make new field for query
+
+    if "LC_Code" not in field_names:
+        arcpy.AddField_management(shp_filepath, "LC_Code", field_type = "short")
+        # add code here to convert microstation types to values once field is created
+    ##      Codeblock:
+    ##        if Linetype = "Continuous":
+    ##            return 0
+    ##        elif Linetype = "Dotted":
+    ##            return 1
+    ##        elif Linetype = "Dashed":
+    ##            return 2
+    ##        elif Linetype = "Dashed spaced":
+    ##            return 3
+    ##        elif Linetype = "Dashed dotted":
+    ##            return 4
+    ##        elif Linetype = "Dashed double-dotted":
+    ##            return 6
+    ##        elif Linetype = "Chain":
+    ##            return 7
+    ##    arcpy.CalculateField_management (shp_filepath, "LC_Code", codeblock)
+
     if "MatchField" not in field_names:
-        arcpy.AddField_management(shp_filepath, "MatchField", field_type = "text")
-    # creates query statement
-    arcpy.CalculateField_management (shp_filepath, "MatchField", expression)
+        arcpy.AddField_management(shp_filepath, "MatchField", field_type = "text")        
+    elif:      # creates feature query statement as a field
+        arcpy.CalculateField_management (shp_filepath, "MatchField", expression)
+
+    
 
     # join Matching_XL
-   #arcpy.JoinField_management (shp_filepath, "MatchField", in_list, "MatchingField", ["Feature_Class"])
+    #arcpy.JoinField_management (shp_filepath, "MatchField", in_list, "MatchingField", ["Feature_Class"])
 
 ##    with arcpy.da.SearchCursor (shp_filepath, "MatchField") as cursor:
 ##        for row in cursor:
