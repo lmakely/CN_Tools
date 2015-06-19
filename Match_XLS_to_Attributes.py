@@ -4,96 +4,102 @@
 # Date: June 15, 2015
 # ----------------------------------
 
-import os
-import shutil
 import arcpy
+import os
 from xls_class import xls_class as xc
-import read_att_table
-
-wrkbk1 = r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\Matching_XL.xlsx"
-wrkbk2 = r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\fields_on.xlsx"
-shp = r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\shps\CAD_Polygons_Gaeta_SE.shp"
-##mxd = arcpy.mapping.MapDocument("V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\5637_testspace.mxd")
 
 
-def Match_attributes(geodb, shp_filepath, in_list):
+def LnTypeToLC(Linetype):
+    if Linetype   == "Continuous":
+        return 0
+    elif Linetype == "Dotted":
+        return 1
+    elif Linetype == "Dashed":
+        return 2
+    elif Linetype == "Dashedspaced":
+        return 3
+    elif Linetype == "Dasheddotted":
+        return 4
+    elif Linetype == "Dasheddouble-dotted":
+        return 6
+    elif Linetype == "Chain":
+        return 7
+
+
+def NewAttributeFromFunction(shapefilepath, new_attribute_name, function, function_arg_att_names):
     """
-    Returns a python table of input shapefiles attribute table
+    Creates a new attribute with values according to an input function
+
+    :param shapefilepath:
+    :param new_attribute_name:      name for new field to create
+    :param function:                function object for function by which to determine new values for new attribute
+    :param function_arg_att_names   attribute names to use as function arguments, must be a list.
+    :return:
     """
 
-    # find the field names
-    field_names = []
-    faillist = []
-    fields      = arcpy.ListFields(shp_filepath)
+    # get list of current fields
+    field_names = arcpy.ListFields(shapefilepath)
 
-##    # sets up mxd parameters
-##    df = arcpy.mapping.ListDataFrames(mxd, "Layers") [0]
-##    Shapes = arcpy.mapping.ListLayers(mxd, "CAD_Polygons_Gaeta_SE", df)[0]
+    # make sure list of "from_attribute" are all valid fields
+    for att in function_arg_att_names:
+        if att not in field_names:
+            raise ValueError("This shapefile has no fields named {0}".format(att))
 
-    # ID fields in shapefile
-    print("Shapefile has the following fields:")
-    for field in fields:
-        print field.baseName
-        field_names.append(field.baseName)
-        
-    print "--------------------------------"
 
-    # defines xlsx
-    onsheet = xc()
-    onsheet.read(in_list)
+    if new_attribute_name not in field_names:
+        arcpy.AddField_management(shapefilepath, new_attribute_name, field_type = "short")
+        print("Attribute '{0} created".format(new_attribute_name))
+        print("Calculating values for each entry from other attributes")
 
-    # would it be easier to import this as a table at this point and read that?
-    TableToTable_conversion (in_list, geodb, "MatchingXL")
-    # read xlsx to print headers to be joined
-    print "Searching for desired fields: "
+        rows = arcpy.UpdateCursor(shapefilepath)
+        for row in rows:
+            args      = [getattr(row, att) for att in function_arg_att_names]
+            new_value = function(*args)
+            setattr(row, new_attribute_name, new_value)
+            rows.updateRow(row)
 
-    # with xlrd
-    #wanted = onsheet.worksheets["CAD_SDS"][0,2:8]
-    #print " " + ", ".join(wanted)
+    else:
+        raise ValueError("This shapefile already has a field named '{0}'".format(new_attribute_name))
 
-    # with arcpy
-    table = gdb + "\MatchingXL"
-    wanted = arcpy.ListFields(table)
-    wanted_names = []
-    for field in wanted:
-        wanted_names.append(field.baseName)
-        
-    print "--------------------------------"
+    return
 
-    # make new fields for querying
-    if "LC_Code" not in field_names:
-        arcpy.AddField_management(shp_filepath, "LC_Code", field_type = "short")
-        print "LC_Code attribute created"
-        print "Calculating LC_Code"
-        # add code here to convert microstation types to values once field is created
-        # and a progress bar of some kind
-    ##      Codeblock:
-    ##        if Linetype = "Continuous":
-    ##            return 0
-    ##        elif Linetype = "Dotted":
-    ##            return 1
-    ##        elif Linetype = "Dashed":
-    ##            return 2
-    ##        elif Linetype = "Dashed spaced":
-    ##            return 3
-    ##        elif Linetype = "Dashed dotted":
-    ##            return 4
-    ##        elif Linetype = "Dashed double-dotted":
-    ##            return 6
-    ##        elif Linetype = "Chain":
-    ##            return 7
-    ##    arcpy.CalculateField_management (shp_filepath, "LC_Code", codeblock)
 
-    if "MatchField" not in field_names:
-        arcpy.AddField_management(shp_filepath, "MatchField", field_type = "text")
-        print "MatchField attribute created"
-    elif:      # creates feature query statement as a field
-        expression = "[" + "]&[".join(wanted_names) + "]"
-        print "Joining together " + expression
-        arcpy.CalculateField_management (shp_filepath, "MatchField", expression)
-        print "MatchField attribute calculated"
 
-    print "--------------------------------"
+def NewAttributeByConcatenation(shapefilepath, new_attribute_name, from_attributes):
+    """
+    Creates a new attribute and value by concatenating the values of existing attributes
+
+    :param shapefilepath:           filepath to shapefile
+    :param new_attribute_name:      name of new attribute to be created in a new field
+    :param from_attributes:         list of attributes from which to create the new attributes value
+
+    :return
+    """
+
+    # get list of current fields
+    field_names = arcpy.ListFields(shapefilepath)
+
+    # make sure list of "from_attribute" are all valid fields
+    for from_attribute in from_attributes:
+        if from_attribute not in field_names:
+            raise ValueError("This shapefile has no fields named {0}".format(from_attribute))
+
+    if new_attribute_name not in field_names:
+        arcpy.AddField_management(shp_filepath, new_attribute_name, field_type = "short")
+        print("Added '{0}' attribute".format(new_attribute_name))
+
+        rows = arcpy.UpdateCursor(shapefilepath)
+        for row in rows:
+            # get list of attributes
+            attributes = [getattr(row, att) for att in from_attributes]
+            new_value  = "_".join(map(str, attributes))
+            setattr(row, new_attribute_name, new_value)
+
+    else:
+        raise ValueError("This shapefile already has a field named '{0}'".format(new_attribute_name))
+
+    return
+
 
     # join Matching_XL
     #arcpy.JoinField_management (shp_filepath, "MatchField", in_list, "MatchingField", ["Feature_Class"])
@@ -105,14 +111,44 @@ def Match_attributes(geodb, shp_filepath, in_list):
 ##            whereClause = "MatchField = "
 ##            arcpy.SelectLayerByAttribute_management(Shapes, "NEW_SELECTION", whereClause)
 
-    return
 
 
-#read_att_table.backup_shapefile(shp)
-backup_shp =r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\NDM_302_Schema_UTM33_EGM08_GaetaSE_working\NDM_302_Schema_UTM33_EGM08_GaetaSE_working.gdb\CAD_Temporary\CAD_Polygons_Gaeta_SE"
-gdb = 
+# woo stuff
+if __name__ == "__main__":
 
-Match_attributes(backup_shp, wrkbk1)
+    # old filepaths
+    wrkbk1      = r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\Matching_XL.xlsx"
+    wrkbk2      = r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\fields_on.xlsx"
+    shp         = r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\shps\CAD_Polygons_Gaeta_SE.shp"
+    backup_shp  =r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\NDM_302_Schema_UTM33_EGM08_GaetaSE_working\NDM_302_Schema_UTM33_EGM08_GaetaSE_working.gdb\CAD_Temporary\CAD_Polygons_Gaeta_SE"
+
+
+    # testing match attributes
+    geodb_filepath  = r""
+    shp_filepath    = r""
+    in_list_path    = r""
+
+    # ID fields in shapefile
+    fields      = arcpy.ListFields(shp_filepath)
+    print("Shapefile has the following fields:")
+    print(fields)
+    print("-"*30)
+
+    # defines xlsx
+    #onsheet = xc()
+    #onsheet.read(in_list_xlspath)
+
+    # would it be easier to import this as a table at this point and read that?
+    arcpy.TableToTable_conversion(in_list_path, geodb_filepath, "MatchingXL")
+
+    # make LC code field
+    NewAttributeFromFunction(shp_filepath, "LC_Code", LnTypeToLC, ["Linecode"])
+
+    # make MatchField field
+    table = geodb_filepath + "\MatchingXL"
+    from_attributes = arcpy.ListFields(table)[2:8]
+    NewAttributeByConcatenation(shp_filepath, "MatchField", from_attributes)
+
 
 
 
