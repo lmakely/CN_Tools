@@ -13,9 +13,7 @@ def SelectFeatures(input_xls, input_gdb):
     query_list.append(xc.worksheets["CAD_SDS"][1:,13])
 
   for query in query_list:
-      selection = query
-
-
+      
     return
 
 def ExportSelection():
