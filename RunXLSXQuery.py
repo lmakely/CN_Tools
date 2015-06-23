@@ -19,12 +19,14 @@ def SelectFeatures(input_xls, input_gdb):
 
         i = 1
         for query in query_list:
-            new_name = input_gdb + "\\" + xc.worksheets["CAD_SDS"][i, 12]
-            print "Exporting to feature class: " + new_name
-            selection = arcpy.Select_analysis(layer, new_name, query)
-
-            if selection is empty:
-
+            try:
+                out_name = xc.worksheets["CAD_SDS"][i, 12]
+                new_name = input_gdb + "\\" + out_name
+                print "Searching feature class: " + out_name
+                arcpy.Select_analysis(layer, new_name, query)
+                print out_name + " exported"
+            except:
+                print "Expression returned no results"
             i = i + 1
 
     return
