@@ -19,7 +19,22 @@ def SelectFeatures(input_xls, input_gdb, mapLayers):
         print("Querying {0}".format(desc.name))
         b = 1
         while b < 240:
-            query = xc.worksheets["CAD_SDS"][b,13]
+            ln = xc.worksheets["CAD_SDS"][b,4]
+            lv = xc.worksheets["CAD_SDS"][b,5]
+            co = xc.worksheets["CAD_SDS"][b,6]
+            lt = xc.worksheets["CAD_SDS"][b,7]
+            lw = xc.worksheets["CAD_SDS"][b,9]
+            ref = xc.worksheets["CAD_SDS"][b,0]
+
+            q1 = '"LEVEL_NAME" = '
+            q2 = ' AND "LEVEL" = '
+            q3 = ' AND "COLOR" = '
+            q4 = ' AND "LINETYPE" = '
+            q5 = ' AND "LINEWT" = '
+            q6 = ' AND "REFNAME" = '
+
+            test_query = "'{0}' '{1}' '{2}' '{3}' '{4}' '{5}' '{6}' '{7}' '{8}' '{9}' '{10}' '{11}' '{12}'".format(q1,ln,q2,int(lv),q3,int(co),q4,lt,q5,int(lw),q6,ref)
+            query = """ %s """ %test_query
             try:
                 out_name = xc.worksheets["CAD_SDS"][b, 12]
                 
@@ -30,7 +45,7 @@ def SelectFeatures(input_xls, input_gdb, mapLayers):
                 tempPoly = arcpy.CreateFeatureclass_management(input_gdb, "tempPolys", "POLYGON")
                 arcpy.Select_analysis(layer, tempPoly, query)
                 tempPoly = arcpy.FeatureToPolygon_management(tempPoly, out_name)
-                arcpy.Delete_management (tempPoly)
+                arcpy.Delete_management(tempPoly)
                 print out_name + " exported"
 
             except:
