@@ -4,7 +4,7 @@ from xls_class import xls_class
 import arcpy
 arcpy.env.overwriteOutput = True
 
-def SelectFeatures(input_xls, input_gdb):
+def SelectFeatures(input_xls, input_gdb, mapLayers):
 
     # defines excel document
     xc = xls_class()
@@ -18,17 +18,17 @@ def SelectFeatures(input_xls, input_gdb):
         desc = arcpy.Describe(layer)
         print("Querying {0}".format(desc.name))
         b = 1
-        while (b < 240):
+        while b < 240:
             query = xc.worksheets["CAD_SDS"][b,13]
             try:
                 out_name = xc.worksheets["CAD_SDS"][b, 12]
                 
                 print("Searching feature class: " + out_name)
-                print "inputs are: "
+                print("inputs are: ")
                 print desc.name + ", " + out_name+ ", " + query
 
                 tempPoly = arcpy.CreateFeatureclass_management(input_gdb, "tempPolys", "POLYGON")
-                arcpy.Select_analysis (layer, tempPoly, query)
+                arcpy.Select_analysis(layer, tempPoly, query)
                 tempPoly = arcpy.FeatureToPolygon_management(tempPoly, out_name)
                 arcpy.Delete_management (tempPoly)
                 print out_name + " exported"
@@ -47,4 +47,4 @@ if __name__ == "__main__":
     mxd = arcpy.mapping.MapDocument(r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\5637_testspace.mxd")
     mapLayers = arcpy.mapping.ListLayers(mxd)
     xls_file = r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\Cad_Label_to_SDS.xlsx"
-    SelectFeatures(xls_file, working_gdb)
+    SelectFeatures(xls_file, working_gdb, mapLayers)
