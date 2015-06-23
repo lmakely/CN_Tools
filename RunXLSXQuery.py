@@ -29,7 +29,6 @@ def SelectFeatures(input_xls, input_gdb):
                 new_name = input_gdb + "\\" + out_name
                 
                 print("Searching feature class: " + out_name)
-                print("Searching for feature class: " + out_name)
                 print("inputs are": layer, newname, query)
                 arcpy.Select_analysis(layer, new_selection, query)
                 arcpy.CopyFeatures_management(new_selection, new_name, )
