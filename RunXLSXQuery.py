@@ -25,11 +25,14 @@ def SelectFeatures(input_xls, input_gdb):
         print("Querying {0}".format(desc.name))
         b = 1
         for query in query_list:
+            
             query = query.replace("''",'"')
+            
             try:
                 out_name = xc.worksheets["CAD_SDS"][i, 12]
                 new_name = input_gdb + "\\" + out_name
                 print "Searching feature class: " + out_name
+                print("inputs are": layer, newname, query)
                 arcpy.Select_analysis(layer, new_name, query)
                 print out_name + " exported"
             except:
