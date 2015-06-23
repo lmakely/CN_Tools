@@ -9,21 +9,21 @@ def SelectFeatures(input_xls, input_gdb):
     # defines excel document
     xc = xls_class()
     xc.read(input_xls)
+    query_list = []
 
     # creates a list of queries to perform on the shapefile
-    query_list = xc.worksheets["CAD_SDS"][1:, 13]
-
-    # print stuff
-    print("Query list:")
-    for q in query_list:
-        print("    {0}".format(q))
+    i = 1
+    while (i < 240):
+        addition = xc.worksheets["CAD_SDS"][i,13]
+        print addition
+        query_list.append(addition)
+        i = i + 1
 
     print("Running query list on all layers")
     for layer in mapLayers:
         desc = arcpy.Describe(layer)
         print("Querying {0}".format(desc.name))
-
-        i = 1
+        b = 1
         for query in query_list:
             query.replace("''",'"')
             try:
@@ -34,7 +34,7 @@ def SelectFeatures(input_xls, input_gdb):
                 print out_name + " exported"
             except:
                 print "Expression returned no results"
-            i = i + 1
+            b = b + 1
 
     return
 
