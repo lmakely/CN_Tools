@@ -20,20 +20,15 @@ def SelectFeatures(input_xls, input_gdb):
         b = 1
         while (b < 240):
             query = xc.worksheets["CAD_SDS"][b,13]
-        for query in query_list:
-            
-            query = query.replace("''",'"')
-
             try:
                 out_name = xc.worksheets["CAD_SDS"][b, 12]
                 new_name = input_gdb + "\\" + out_name
                 
                 print("Searching feature class: " + out_name)
-                print("inputs are": layer, newname, query)
+                print "inputs are: " + layer + newname + query
                 arcpy.Select_analysis(layer, new_selection, query)
                 arcpy.CopyFeatures_management(new_selection, new_name, )
                 print out_name + " exported"
-
             except:
                 print "     Expression returned no results"
                 
