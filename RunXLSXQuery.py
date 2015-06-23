@@ -11,12 +11,11 @@ def SelectFeatures(input_xls, input_gdb):
     xc.read(input_xls)
 
     # creates a list of queries to perform on the shapefile
-    query_list = xc.worksheets["CAD_SDS"][1:,13]
+    query_list = xc.worksheets["CAD_SDS"][1:, 13]
 
     # print stuff
     print("Query list:")
     for q in query_list:
-        q.replace("''",'"')
         print("    {0}".format(q))
 
     print("Running query list on all layers")
@@ -26,6 +25,7 @@ def SelectFeatures(input_xls, input_gdb):
 
         i = 1
         for query in query_list:
+            query.replace("''",'"')
             try:
                 out_name = xc.worksheets["CAD_SDS"][i, 12]
                 new_name = input_gdb + "\\" + out_name
@@ -34,9 +34,6 @@ def SelectFeatures(input_xls, input_gdb):
                 print out_name + " exported"
             except:
                 print "Expression returned no results"
-
-            if selection is empty:
-                pass
             i = i + 1
 
     return
