@@ -25,7 +25,7 @@ def SelectFeatures(input_xls, input_gdb):
         print("Querying {0}".format(desc.name))
         b = 1
         for query in query_list:
-            query.replace("''",'"')
+            query = query.replace("''",'"')
             try:
                 out_name = xc.worksheets["CAD_SDS"][i, 12]
                 new_name = input_gdb + "\\" + out_name
