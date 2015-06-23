@@ -13,21 +13,28 @@ def SelectFeatures(input_xls, input_gdb):
     # creates a list of queries to perform on the shapefile
     query_list = xc.worksheets["CAD_SDS"][1:,13]
 
+    # print stuff
+    print("Query list:")
+    for q in query_list: print("    {0}".format(q))
+
+    print("Running query list on all layers")
     for layer in mapLayers:
         desc = arcpy.Describe(layer)
-        print "Querying " + desc.name
+        print("Querying {0}".format(desc.name))
 
         i = 1
         for query in query_list:
             new_name = input_gdb + "\\" + xc.worksheets["CAD_SDS"][i, 12]
-            print "Exporting to feature class: " + new_name
+            print("Exporting to feature class: {0}".format(new_name))
             selection = arcpy.Select_analysis(layer, new_name, query)
 
             if selection is empty:
-
+                pass
+            
             i = i + 1
 
     return
+
 
 if __name__ == "__main__":
 
