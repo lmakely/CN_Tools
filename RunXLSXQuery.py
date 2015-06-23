@@ -26,15 +26,15 @@ def SelectFeatures(input_xls, input_gdb, mapLayers):
             lw = xc.worksheets["CAD_SDS"][b,9]
             ref = xc.worksheets["CAD_SDS"][b,0]
 
-            q1 = '"LEVEL_NAME" = '
-            q2 = ' AND "LEVEL" = '
-            q3 = ' AND "COLOR" = '
-            q4 = ' AND "LINETYPE" = '
-            q5 = ' AND "LINEWT" = '
-            q6 = ' AND "REFNAME" = '
+            q1 = '"Level_Name" = '
+            q2 = ' AND "Level" = '
+            q3 = ' AND "Color" = '
+            q4 = ' AND "Linetype" = '
+            q5 = ' AND "Linewt" = '
+            q6 = ' AND "Refname" = '
 
             test_query = "{0}'{1}'{2}{3}{4}{5}{6}'{7}'{8}{9}{10}'{11}'".format(q1,ln,q2,int(lv),q3,int(co),q4,lt,q5,int(lw),q6,ref)
-            query = """ %s """ %test_query
+            query = '"%s"' %test_query
             try:
                 out_name = xc.worksheets["CAD_SDS"][b, 12]
                 
