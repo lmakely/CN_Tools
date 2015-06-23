@@ -31,8 +31,7 @@ anno = arcpy.CreateFeatureclass_management(newGDB, "Annotation", "POINT")
 point = arcpy.CreateFeatureclass_management(newGDB, "Points", "POINT")
 line = arcpy.CreateFeatureclass_management(newGDB, "Lines", "POLYLINE")
 poly = arcpy.CreateFeatureclass_management(newGDB, "Polygons", "POLYGON")
-poly2 = arcpy.CreateFeatureclass_management(newGDB, "Polygonss", "POLYGON")
-poly3 = arcpy.CreateFeatureclass_management(newGDB, "Polygonsss", "POLYGON")
+
 
 for layer in mapLayers:
     desc = arcpy.Describe(layer)
@@ -44,27 +43,12 @@ for layer in mapLayers:
     if desc.name.lower() == "polyline":
         tempLine = arcpy.CreateFeatureclass_management(newGDB, "tempLines", "POLYLINE")
         select = arcpy.Select_analysis (layer, tempLine, selection1)
-        tempPoly = arcpy.FeatureToPolygon_management(tempLine, poly, "", "ATTRIBUTES")
+        tempPoly = arcpy.FeatureToPolygon_management(tempLine, poly, "", "ATTRIBUTES", anno)
         arcpy.Delete_management (tempLine)
         arcpy.Select_analysis (layer, line, selection2)
     if desc.name.lower() == "polygon":
-        arcpy.CopyFeatures_management(layer, poly2)
-##        arcpy.Append_management(layer, poly, "NO_TEST")
+        arcpy.Append_management(layer, poly, "NO_TEST")
     if desc.name.lower() == "multipatch":
-        arcpy.CopyFeatures_management(layer, poly3)
-##        arcpy.Append_management(layer, poly, "NO_TEST")
+        arcpy.Append_management(layer, poly, "NO_TEST")
 
 print "Script Complete"
-
-
-
-
-
-
-
-
-
-
-
-
-

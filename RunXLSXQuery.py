@@ -22,13 +22,17 @@ def SelectFeatures(input_xls, input_gdb):
             query = xc.worksheets["CAD_SDS"][b,13]
             try:
                 out_name = xc.worksheets["CAD_SDS"][b, 12]
-                new_name = input_gdb + "\\" + out_name
                 
                 print("Searching feature class: " + out_name)
-                print "inputs are: " + layer + newname + query
-                arcpy.Select_analysis(layer, new_selection, query)
-                arcpy.CopyFeatures_management(new_selection, new_name, )
+                print "inputs are: "
+                print desc.name + ", " + out_name+ ", " + query
+
+                tempPoly = arcpy.CreateFeatureclass_management(input_gdb, "tempPolys", "POLYGON")
+                arcpy.Select_analysis (layer, tempPoly, query)
+                tempPoly = arcpy.FeatureToPolygon_management(tempPoly, out_name)
+                arcpy.Delete_management (tempPoly)
                 print out_name + " exported"
+
             except:
                 print "     Expression returned no results"
                 
