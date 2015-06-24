@@ -23,7 +23,7 @@ def CreateFieldFromXLSX(feature_class, field_name, input_xls):
 
     return
 
-def SelectFeatures(input_xls, input_302gdb, input_gdb_302workdir, input_26gdb, input_mxd):
+def SelectFeatures(input_xls, input_302gdb, input_26gdb, input_mxd):
 
     mxd = arcpy.mapping.MapDocument(input_mxd)
     mapLayers = arcpy.mapping.ListLayers(mxd)
@@ -86,7 +86,7 @@ def SelectFeatures(input_xls, input_302gdb, input_gdb_302workdir, input_26gdb, i
                         arcpy.SelectLayerByAttribute_management(layer, "NEW_SELECTION", query)
 
                         # add to existing layer
-                        arcpy.Append_management(layer, os.path.join(outdir, out_name), "NO_TEST")
+                        arcpy.Append_management(layer, os.path.join(outdir, out_name))
 
                         # calculate description attribute
                         if outdir == "input_302gdb":
@@ -128,10 +128,9 @@ if __name__ == "__main__":
     # laurens test area
     gdb302 = r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\NDM_302_Schema_UTM33_EGM08_GaetaSE_working.gdb"
     gdb26 = r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\NDM_26_Schema_UTM33_EGM08_GaetaSE_working.gdb"
-    gdbdir = "CAD_Temporary"
     mxd = r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\5637_testspace.mxd"
     xls = r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\Modified_Cad_Label_to_SDS.xlsx"
-    SelectFeatures(xls, gdb302, gdbdir, gdb26, mxd)
+    SelectFeatures(xls, gdb302, gdb26, mxd)
 
     # jeffs test area
     #gdb    = r"C:\Users\Jeff\Desktop\Github\CN_Tools\Reference\NDM_302_Schema_UTM33_EGM08_GaetaSE_working\NDM_302_Schema_UTM33_EGM08_GaetaSE_working.gdb"
