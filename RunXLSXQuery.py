@@ -77,11 +77,21 @@ def SelectFeatures(input_xls, input_302gdb, input_gdb_302workdir, input_26gdb, i
                 print out_FC
                 print query
 
-                # for shapefiles that do not already exists
                 if xc.worksheets["CAD_SDS"][b, 13] != "" :
                     outdir = input_302gdb
-                    if not os.path.exists(os.path.join(outdir, out_name)):
+                    # for shapefiles that do not already exists
+                    if os.path.exists(os.path.join(outdir, out_name)):
+                        # apply the query to select specific attributes
+                        arcpy.SelectLayerByAttribute_management(layer, "NEW_SELECTION", query)
 
+                        # add to existing layer
+                        arcpy.Append_management(layer, os.path.join(outdir, out_name))
+
+                        # calculate description attribute
+                        CreateFieldFromXLSX(out_name, "Description")
+
+                    # for shapefiles that do not exist
+                    else:
                         # pull the spatial reference information
                         spat_ref = arcpy.Describe(outdir + "\\" + out_FC).spatialReference
 
@@ -97,13 +107,6 @@ def SelectFeatures(input_xls, input_302gdb, input_gdb_302workdir, input_26gdb, i
                         # calculate description attribute
                         CreateFieldFromXLSX(out_name, "Description")
 
-                    # for shapefiles that do exist
-                    else:
-                        # apply the query to select specific attributes
-                        arcpy.SelectLayerByAttribute_management(layer, "NEW_SELECTION", query)
-
-                        # add to existing layer
-                        arcpy.Append_management(layer, os.path.join(outdir, out_name))
                 else:
                     outdir = input_26gdb
                     if not os.path.exists(os.path.join(outdir, out_name)):
@@ -141,7 +144,7 @@ def SelectFeatures(input_xls, input_302gdb, input_gdb_302workdir, input_26gdb, i
             except:
                 print("==== this is clearly Will's fault ====")
 
-        b += 1
+            b += 1
 
     return
 
