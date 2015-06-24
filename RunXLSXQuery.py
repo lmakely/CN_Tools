@@ -36,7 +36,7 @@ def SelectFeatures(input_xls, input_gdb, input_gdb_workdir, input_mxd, outdir):
     # creates a list of queries to perform on the shapefile
 
     print("Running query list on all layers")
-    for layer in mapLayers:
+    for layer in mapLayers: #get rid of this loop
         desc = arcpy.Describe(layer)
         print("Querying {0}".format(desc.name))
         b = 1
