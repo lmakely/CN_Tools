@@ -5,6 +5,25 @@ import arcpy
 import os
 arcpy.env.overwriteOutput = True
 
+def CreateFieldFromXLSX(feature_class, new_attribute_name):
+
+    field_names = []
+    fields      = arcpy.ListFields(shp_filepath)
+
+    # get list of current fields
+    for field in fields:
+        field_names.append(field.baseName)
+
+    # make description field
+    if new_attribute_name not in field_names:
+        arcpy.AddField_management(feature_class, new_attribute_name, field_type = "text")
+        print("Added '{0}' attribute".format(new_attribute_name))
+
+    from_attribute = xc.worksheets["CAD_SDS"][b, 3]
+    arcpy.CalculateField_management(feature_class, new_attribute_name, from_attribute)
+
+    return
+
 def SelectFeatures(input_xls, input_gdb, input_gdb_workdir, input_mxd, outdir):
 
     mxd = arcpy.mapping.MapDocument(input_mxd)
@@ -47,7 +66,7 @@ def SelectFeatures(input_xls, input_gdb, input_gdb_workdir, input_mxd, outdir):
                 else:
                     query = """"LAYER" = '{0}' AND "LEVEL" = {1} AND "COLOR" = {2} AND "LINETYPE" = '{3}' AND "LINEWT" = {4} AND "REFNAME" = '{5}'""".format(ln, lv, co, lt, lw, ref)
 
-                out_name = xc.worksheets["CAD_SDS"][b, 12] #.replace("_","")
+                out_name = xc.worksheets["CAD_SDS"][b, 12].replace("_","") # make sure we do not NEED these underscores
 
                 print("Searching feature class: " + out_name)
                 print os.path.join(outdir, out_name + ".shp")
@@ -67,6 +86,9 @@ def SelectFeatures(input_xls, input_gdb, input_gdb_workdir, input_mxd, outdir):
 
                     # make new layer
                     arcpy.FeatureClassToFeatureClass_conversion(layer, outdir, out_name)
+
+                    # calculate description attribute
+                    CreateFieldFromXLSX(out_name, "Description"):
 
                 # for shapefiles that do exist
                 else:
