@@ -5,22 +5,21 @@ import arcpy
 import os
 arcpy.env.overwriteOutput = True
 
-def CreateFieldFromXLSX(feature_class, new_attribute_name):
+def CreateFieldFromXLSX(feature_class, field_name, input_xls):
 
     field_names = []
     fields      = arcpy.ListFields(feature_class)
+
+    xc = xls_class()
+    xc.read(input_xls)
 
     # get list of current fields
     for field in fields:
         field_names.append(field.baseName)
 
-    # make description field
-    if new_attribute_name not in field_names:
-        arcpy.AddField_management(feature_class, new_attribute_name, field_type = "text")
-        print("Added '{0}' attribute".format(new_attribute_name))
-
+    # calculate description field
     from_attribute = xc.worksheets["CAD_SDS"][b, 3]
-    arcpy.CalculateField_management(feature_class, new_attribute_name, from_attribute)
+    arcpy.CalculateField_management(feature_class, field_name, from_attribute)
 
     return
 
@@ -79,65 +78,41 @@ def SelectFeatures(input_xls, input_302gdb, input_gdb_302workdir, input_26gdb, i
 
                 if xc.worksheets["CAD_SDS"][b, 13] != "" :
                     outdir = input_302gdb
+                else:
+                    outdir = input_26gdb
                     # for shapefiles that do not already exists
                     if os.path.exists(os.path.join(outdir, out_name)):
                         # apply the query to select specific attributes
                         arcpy.SelectLayerByAttribute_management(layer, "NEW_SELECTION", query)
 
                         # add to existing layer
-                        arcpy.Append_management(layer, os.path.join(outdir, out_name))
+                        arcpy.Append_management(layer, os.path.join(outdir, out_name), "NO_TEST")
 
                         # calculate description attribute
-                        CreateFieldFromXLSX(out_name, "Description")
+                        if outdir == "input_302gdb":
+                            CreateFieldFromXLSX(out_name, "SDFEATUREDESCRIPTION", input_xls)
+                        if outdir == "input_26gdb":
+                            CreateFieldFromXLSX(out_name, "NARRATIVE", input_xls)
 
                     # for shapefiles that do not exist
-                    else:
-                        # pull the spatial reference information
-                        spat_ref = arcpy.Describe(outdir + "\\" + out_FC).spatialReference
-
-                        # create an empty new featureclass
-                        arcpy.CreateFeatureclass_management(outdir, out_name, "POLYGON", spatial_reference = spat_ref)
-
-                        # apply the query to select specific attributes
-                        arcpy.SelectLayerByAttribute_management(layer, "NEW_SELECTION", query)
-
-                         # make new layer
-                        arcpy.FeatureClassToFeatureClass_conversion(layer, outdir, out_name)
-
-                        # calculate description attribute
-                        CreateFieldFromXLSX(out_name, "Description")
-
-                else:
-                    outdir = input_26gdb
-                    if not os.path.exists(os.path.join(outdir, out_name)):
-
-                        # pull the spatial reference information
-                        spat_ref = arcpy.Describe(outdir + "\\" + out_FC).spatialReference
-
-                        # create an empty new featureclass
-                        arcpy.CreateFeatureclass_management(outdir, out_name, "POLYGON", spatial_reference = spat_ref)
-
-                        # apply the query to select specific attributes
-                        arcpy.SelectLayerByAttribute_management(layer, "NEW_SELECTION", query)
-
-                         # make new layer
-                        arcpy.FeatureClassToFeatureClass_conversion(layer, outdir, out_name)
-
-                        # calculate description attribute
-                        CreateFieldFromXLSX(out_name, "Narrative")
-
-                    # for shapefiles that do exist
-                    else:
-                        # apply the query to select specific attributes
-                        arcpy.SelectLayerByAttribute_management(layer, "NEW_SELECTION", query)
-
-                        # add to existing layer
-                        arcpy.Append_management(layer, os.path.join(outdir, out_name))
-                        # make new layer
-                        arcpy.FeatureClassToFeatureClass_conversion(layer, outdir, out_name)
-
-                        # calculate description attribute
-                        CreateFieldFromXLSX(out_name, "Narrative")
+                    # else:
+                    #     # pull the spatial reference information
+                    #     spat_ref = arcpy.Describe(outdir + "\\" + out_FC).spatialReference
+                    #
+                    #     # create an empty new featureclass
+                    #     arcpy.CreateFeatureclass_management(outdir, out_name, "POLYGON", spatial_reference = spat_ref)
+                    #
+                    #     # apply the query to select specific attributes
+                    #     arcpy.SelectLayerByAttribute_management(layer, "NEW_SELECTION", query)
+                    #
+                    #      # make new layer
+                    #     arcpy.FeatureClassToFeatureClass_conversion(layer, outdir, out_name)
+                    #
+                    #     # calculate description attribute
+                    #     if outdir == "input_302gdb":
+                    #         CreateFieldFromXLSX(out_name, "SDFEATUREDESCRIPTION", input_xls)
+                    #     if outdir == "input_26gdb":
+                    #         CreateFieldFromXLSX(out_name, "NARRATIVE", input_xls)
 
                 print out_name + " exported"
 
