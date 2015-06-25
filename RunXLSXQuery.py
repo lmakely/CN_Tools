@@ -138,7 +138,7 @@ def SelectFeatures(input_xls, input_gdb, input_gdb_workdir, input_mxd, outdir):
                         spat_ref = arcpy.Describe(input_gdb + "\\" + input_gdb_workdir).spatialReference
 
                         # create an empty new featureclass
-                        arcpy.CreateFeatureclass_management(outdir, out_name, "LINE", spatial_reference = spat_ref)
+                        arcpy.CreateFeatureclass_management(outdir, out_name, "POLYLINE", spatial_reference = spat_ref)
 
                         # apply the query to select specific attributes
                         arcpy.SelectLayerByAttribute_management(layer, "NEW_SELECTION", query)
