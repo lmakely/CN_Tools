@@ -16,10 +16,11 @@ def CreateFieldFromXLSX(feature_class, new_attribute_name):
 
     # make description field
     if new_attribute_name not in field_names:
-        arcpy.AddField_management(feature_class, new_attribute_name, field_type = "text")
+        arcpy.AddField_management(feature_class, field_name, "TEXT", "", "", "", "", "NULLABLE")
         print("Added '{0}' attribute".format(new_attribute_name))
 
     from_attribute = xc.worksheets["CAD_SDS"][b, 3]
+
     arcpy.CalculateField_management(feature_class, new_attribute_name, from_attribute)
 
     return
@@ -99,11 +100,14 @@ def SelectFeatures(input_xls, input_gdb, input_gdb_workdir, input_mxd, outdir):
 
                         # add to existing layer
                         arcpy.Append_management(layer, os.path.join(outdir, out_name))
-
-                    print out_name + " exported"
+                    print("---------------------------------------------")
+                    print              out_name + " exported"
+                    print("---------------------------------------------")
 
                 except:
-                    print("==== this is clearly Will's fault ====")
+                    print("---------------------------------------------")
+                    print "  No matching features or incorrect inputs   "
+                    print("---------------------------------------------")
 
             elif geo == "line" or geo =="line 3d":
                 try:
@@ -158,10 +162,14 @@ def SelectFeatures(input_xls, input_gdb, input_gdb_workdir, input_mxd, outdir):
                         # add to existing layer
                         arcpy.Append_management(layer, os.path.join(outdir, out_name))
 
-                    print out_name + " exported"
+                    print("---------------------------------------------")
+                    print              out_name + " exported"
+                    print("---------------------------------------------")
 
                 except:
-                    print("==== this is clearly Will's fault ====")
+                    print("---------------------------------------------")
+                    print "  No matching features or incorrect inputs   "
+                    print("---------------------------------------------")
 
             elif geo == "point-cell" or geo == "point" or geo == "point-text":
                 print "Point feature. Skipping..."
