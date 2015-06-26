@@ -5,10 +5,13 @@ import arcpy
 import os
 arcpy.env.overwriteOutput = True
 
-def CreateFieldFromXLSX(feature_class, new_attribute_name):
+def CreateFieldFromXLSX(b, in_table, feature_class, new_attribute_name):
+
+    xc = xls_class()
+    xc.read(in_table)
 
     field_names = []
-    fields      = arcpy.ListFields(shp_filepath)
+    fields      = arcpy.ListFields(feature_class)
 
     # get list of current fields
     for field in fields:
@@ -16,11 +19,11 @@ def CreateFieldFromXLSX(feature_class, new_attribute_name):
 
     # make description field
     if new_attribute_name not in field_names:
-        arcpy.AddField_management(feature_class, field_name, "TEXT", "", "", "", "", "NULLABLE")
+        arcpy.AddField_management(feature_class, new_attribute_name, "TEXT")
         print("Added '{0}' attribute".format(new_attribute_name))
 
     from_attribute = xc.worksheets["CAD_SDS"][b, 3]
-
+    print "Calculating attribute as :" + from_attribute
     arcpy.CalculateField_management(feature_class, new_attribute_name, from_attribute)
 
     return
@@ -37,144 +40,212 @@ def SelectFeatures(input_xls, input_gdb, input_gdb_workdir, input_mxd, outdir):
     # creates a list of queries to perform on the shapefile
 
     print("Running query list on all layers")
+
     for layer in mapLayers:
         desc = arcpy.Describe(layer)
         print("Querying {0}".format(desc.name))
+
         b = 1
+        geo = xc.worksheets["CAD_SDS"][b, 1]
         while b < 240:
+            try:
+                ln = xc.worksheets["CAD_SDS"][b, 4]
+                lv = xc.worksheets["CAD_SDS"][b, 5]
+                co = xc.worksheets["CAD_SDS"][b, 6]
+                lt = xc.worksheets["CAD_SDS"][b, 7]
+                lw = xc.worksheets["CAD_SDS"][b, 9]
+                ref = xc.worksheets["CAD_SDS"][b, 0]
 
-            geo= xc.worksheets["CAD_SDS"][b, 1]
-            if geo == "area":
-                try:
-                    ln = xc.worksheets["CAD_SDS"][b, 4]
-                    lv = xc.worksheets["CAD_SDS"][b, 5]
-                    co = xc.worksheets["CAD_SDS"][b, 6]
-                    lt = xc.worksheets["CAD_SDS"][b, 7]
-                    lw = xc.worksheets["CAD_SDS"][b, 9]
-                    ref = xc.worksheets["CAD_SDS"][b, 0]
+                # ensures that inputs are integers and not floats
+                if lv != "":
+                    lv = int(lv)
 
-                    # ensures that inputs are integers and not floats
-                    if lv != "":
-                        lv = int(lv)
+                if co != "":
+                    co = int(co)
 
-                    if co != "":
-                        co = int(co)
+                if lw != "":
+                    lw = int(lw)
 
-                    if lw != "":
-                        lw = int(lw)
+                if lt == "No Value" or lt == "FALSE":
+                    lt = ""
 
-                    if ref == "":
-                        query = """"LAYER" = '{0}' AND "LEVEL" = {1} AND "COLOR" = {2} AND "LINETYPE" = '{3}' AND "LYRLINEWT" = {4}""".format(ln, lv, co, lt, lw)
-                    else:
-                        query = """"LAYER" = '{0}' AND "LEVEL" = {1} AND "COLOR" = {2} AND "LINETYPE" = '{3}' AND "LYRLINEWT" = {4} AND "REFNAME" = '{5}'""".format(ln, lv, co, lt, lw, ref)
+                #formatting strings
+                #layer name
+                if ln == "":
+                    lnstring = ""
+                else:
+                    lnstring = (""""LAYER" = '{0}'""").format(ln)
+                #level
+                if lv == "":
+                    lvstring = ""
+                else:
+                    lvstring = (""" AND "LEVEL" = {0}""").format(lv)
+                #color
+                if co =="":
+                    costring = ""
+                else:
+                    costring = (""" AND "COLOR" = {0}""").format(co)
+                #linetype
+                if lt == "":
+                    ltsring = ""
+                else:
+                    ltstring = (""" AND "LINETYPE" = '{0}'""").format(lt)
+                
+                if lw == "":
+                    lwstring = ""
+                else:
+                    lwstring = (""" AND "LYRLINEWT" = {0}""").format(lw)
 
-                    out_name = xc.worksheets["CAD_SDS"][b, 12].replace("_","")
+                if ref == "":
+                    refname = ""
+                else:
+                    refname = (""" AND "REFNAME" = '{0}'""").format(ref)
 
-                    print("Searching feature class: " + out_name)
-                    print os.path.join(outdir, out_name + ".shp")
-                    print query
+                #building query
+                query = """{0}{1}{2}{3}{4}{5}""".format(lnstring, lvstring, costring, ltstring, lwstring, refname)
 
-                    # for shapefiles that do not already exists
-                    if not os.path.exists(os.path.join(outdir, out_name)):
+                out_name = xc.worksheets["CAD_SDS"][b, 12].replace("_","")
 
-                        # pull the spatial reference information
-                        spat_ref = arcpy.Describe(input_gdb + "\\" + input_gdb_workdir).spatialReference
+                print("Searching feature class: " + out_name)
+                output = os.path.join(outdir, out_name + ".shp")
+                print output
+                print query
 
-                        # create an empty new featureclass
-                        arcpy.CreateFeatureclass_management(outdir, out_name, "POLYGON", spatial_reference = spat_ref)
+                # for shapefiles that do not already exists
+                if not os.path.exists(os.path.join(outdir, out_name)):
 
-                        # apply the query to select specific attributes
-                        arcpy.SelectLayerByAttribute_management(layer, "NEW_SELECTION", query)
+                    # pull the spatial reference information
+                    spat_ref = arcpy.Describe(input_gdb + "\\" + input_gdb_workdir).spatialReference
 
-                        # make new layer
-                        arcpy.FeatureClassToFeatureClass_conversion(layer, outdir, out_name)
+                    # create an empty new featureclass
+                    arcpy.CreateFeatureclass_management(outdir, out_name, "POLYGON", spatial_reference = spat_ref)
 
-                        # calculate description attribute
-                        CreateFieldFromXLSX(out_name, "Description")
+                    
+                    # apply the query to select specific attributes
+                    selection = arcpy.SelectLayerByAttribute_management(layer, "NEW_SELECTION", query)
 
-                    # for shapefiles that do exist
-                    else:
+                    # make new layer
+                    arcpy.FeatureClassToFeatureClass_conversion(layer, outdir, out_name)
 
-                        # apply the query to select specific attributes
-                        arcpy.SelectLayerByAttribute_management(layer, "NEW_SELECTION", query)
+                    # calculate description attribute
+                    CreateFieldFromXLSX(b, input_xls, output, "Descrip")
+                    
+                # for shapefiles that do exist
+                else:
 
-                        # add to existing layer
-                        arcpy.Append_management(layer, os.path.join(outdir, out_name))
-                    print("---------------------------------------------")
-                    print              out_name + " exported"
-                    print("---------------------------------------------")
+                    # apply the query to select specific attributes
+                    arcpy.SelectLayerByAttribute_management(layer, "NEW_SELECTION", query)
 
-                except:
-                    print("---------------------------------------------")
-                    print "  No matching features or incorrect inputs   "
-                    print("---------------------------------------------")
 
-            elif geo == "line" or geo =="line 3d":
-                try:
-                    ln = xc.worksheets["CAD_SDS"][b, 4]
-                    lv = xc.worksheets["CAD_SDS"][b, 5]
-                    co = xc.worksheets["CAD_SDS"][b, 6]
-                    lt = xc.worksheets["CAD_SDS"][b, 7]
-                    lw = xc.worksheets["CAD_SDS"][b, 9]
-                    ref = xc.worksheets["CAD_SDS"][b, 0]
+                    # add to existing layer
+                    arcpy.Append_management(layer, os.path.join(outdir, out_name))
 
-                    # ensures that inputs are integers and not floats
-                    if lv != "":
-                        lv = int(lv)
+                    # calculate description attribute
+                    CreateFieldFromXLSX(b, input_xls, output, "Descrip")
+                    
+                print("---------------------------------------------")
+                print              out_name + " exported"
+                print("---------------------------------------------")
+##
+##                if "Lines" in desc.name:
+##                    if "line" in geo:
+##                        if lv != "":
+##                            lv = int(lv)
+##
+##                        if co != "":
+##                            co = int(co)
+##
+##                        if lw != "":
+##                            lw = int(lw)
+##
+##                        if lt == "No Value" or lt == "FALSE":
+##                            lt = ""
+##
+##                        #formatting strings
+##                        #layer name
+##                        if ln == "":
+##                            lnstring = ""
+##                        else:
+##                            lnstring = (""""LAYER" = '{0}'""").format(lv)
+##                        #level
+##                        if lv == "":
+##                            lvstring = ""
+##                        else:
+##                            lvstring = (""" AND "LEVEL" = {0}""").format(lv)
+##                        #color
+##                        if co =="":
+##                            costring = ""
+##                        else:
+##                            costring = (""" AND "COLOR" = {0}""").format(co)
+##                        #linetype
+##                        if lt == "":
+##                            ltsring = ""
+##                        else:
+##                            ltstring = (""" AND "LINETYPE" = '{0}'""").format(lt)
+##                        
+##                        if lw == "":
+##                            lwstring = ""
+##                        else:
+##                            lwstring = (""" AND "LYRLINEWT" = {0}""").format(lw)
+##
+##                        if ref == "":
+##                            refname = ""
+##                        else:
+##                            refname = (""" AND "REFNAME" = {0}""").format(ref)
+##
+##                        #building query
+##                        query = """{0}{1}{2}{3}{4}{5}""".format(lnstring, lvstring, costring, ltstring, lwstring, refname)
+##
+##                        out_name = xc.worksheets["CAD_SDS"][b, 12].replace("_","")
+##
+##                        print("Searching feature class: " + out_name)
+##                        output = os.path.join(outdir, out_name + ".shp")
+##                        print output
+##                        print query
+##
+##                        # for shapefiles that do not already exists
+##                        if not os.path.exists(os.path.join(outdir, out_name)):
+##
+##                            # pull the spatial reference information
+##                            spat_ref = arcpy.Describe(input_gdb + "\\" + input_gdb_workdir).spatialReference
+##
+##                            # create an empty new featureclass
+##                            arcpy.CreateFeatureclass_management(outdir, out_name, "POLYLINE", spatial_reference = spat_ref)
+##
+##                            # apply the query to select specific attributes
+##                            arcpy.SelectLayerByAttribute_management(layer, "NEW_SELECTION", query)
+##
+##                            # make new layer
+##                            arcpy.FeatureClassToFeatureClass_conversion(layer, outdir, out_name)
+##
+##                            # calculate description attribute
+##                            CreateFieldFromXLSX(b, input_xls, output, "Descrip")
+##                            
+##                        # for shapefiles that do exist
+##                        else:
+##
+##                            # apply the query to select specific attributes
+##                            arcpy.SelectLayerByAttribute_management(layer, "NEW_SELECTION", query)
+##
+##                            # add to existing layer
+##                            arcpy.Append_management(layer, os.path.join(outdir, out_name))
+##
+##                            CreateFieldFromXLSX(b, input_xls, output, "Descrip")
+##
+##                        print("---------------------------------------------")
+##                        print              out_name + " exported"
+##                        print("---------------------------------------------")
+##
+##
+##                elif "point" in geo:
+##                    print "Point feature. Skipping..."
 
-                    if co != "":
-                        co = int(co)
-
-                    if lw != "":
-                        lw = int(lw)
-
-                    query = """"LAYER" = '{0}' AND "LEVEL" = {1} AND "COLOR" = {2} AND "LINETYPE" = '{3}' AND "LYRLINEWT" = {4}""".format(ln, lv, co, lt, lw)
-                    out_name = xc.worksheets["CAD_SDS"][b, 12].replace("_","")
-
-                    print("Searching feature class: " + out_name)
-                    print os.path.join(outdir, out_name + ".shp")
-                    print query
-
-                    # for shapefiles that do not already exists
-                    if not os.path.exists(os.path.join(outdir, out_name)):
-
-                        # pull the spatial reference information
-                        spat_ref = arcpy.Describe(input_gdb + "\\" + input_gdb_workdir).spatialReference
-
-                        # create an empty new featureclass
-                        arcpy.CreateFeatureclass_management(outdir, out_name, "POLYLINE", spatial_reference = spat_ref)
-
-                        # apply the query to select specific attributes
-                        arcpy.SelectLayerByAttribute_management(layer, "NEW_SELECTION", query)
-
-                        # make new layer
-                        arcpy.FeatureClassToFeatureClass_conversion(layer, outdir, out_name)
-
-                        # calculate description attribute
-                        CreateFieldFromXLSX(out_name, "Description")
-
-                    # for shapefiles that do exist
-                    else:
-
-                        # apply the query to select specific attributes
-                        arcpy.SelectLayerByAttribute_management(layer, "NEW_SELECTION", query)
-
-                        # add to existing layer
-                        arcpy.Append_management(layer, os.path.join(outdir, out_name))
-
-                    print("---------------------------------------------")
-                    print              out_name + " exported"
-                    print("---------------------------------------------")
-
-                except:
-                    print("---------------------------------------------")
-                    print "  No matching features or incorrect inputs   "
-                    print("---------------------------------------------")
-
-            elif geo == "point-cell" or geo == "point" or geo == "point-text":
-                print "Point feature. Skipping..."
+                
+            except:
+                print "-------------------------------------------------------------------"
+                print "                     No selection was made"
+                print "-------------------------------------------------------------------"
             b += 1
-
     return
 
 
@@ -186,7 +257,7 @@ if __name__ == "__main__":
     gdbdir = "CAD_Temporary"
     mxd = r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\5637_testspace.mxd"
     xls = r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\Cad_Label_to_SDS.xlsx"
-    outdir = r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\shps"
+    outdir = r"V:\Projects\5637-GIS JV - Aerial Mapping for NSA Naples\Development\Working\LMM\shps2"
     SelectFeatures(xls, gdb, gdbdir, mxd, outdir)
 
     # jeffs test area
