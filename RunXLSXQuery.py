@@ -23,8 +23,9 @@ def CreateFieldFromXLSX(b, in_table, feature_class, new_attribute_name):
         print("Added '{0}' attribute".format(new_attribute_name))
 
     from_attribute = xc.worksheets["CAD_SDS"][b, 3]
-    print "Calculating attribute as :" + from_attribute
-    arcpy.CalculateField_management(feature_class, new_attribute_name, from_attribute)
+    print "Calculating attribute as: " + from_attribute
+    expression = "[DESCRIP] = '" + from_attribute + "'"
+    arcpy.CalculateField_management(feature_class, new_attribute_name, expression)
 
     return
 
@@ -135,7 +136,6 @@ def SelectFeatures(input_xls, input_gdb, input_gdb_workdir, input_mxd, outdir):
 
                     # apply the query to select specific attributes
                     arcpy.SelectLayerByAttribute_management(layer, "NEW_SELECTION", query)
-
 
                     # add to existing layer
                     arcpy.Append_management(layer, os.path.join(outdir, out_name))
