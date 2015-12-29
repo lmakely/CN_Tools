@@ -23,7 +23,7 @@ def sort(filelist, delim = "_"):
 
 if __name__ == "__main__":
     
-    filelist = core.list_files(False, r"C:\Users\jwely\Desktop\troubleshooting\lauren_organize")
+    filelist = core.list_files(False, r"V:\Projects\5088_MOD_NAVFAC_LANT_Asset_Management\Field\Maps\Scans\SE\NEW STUFF TO PROCESSSSSSS")
     sort(filelist)
     
     
